@@ -1,0 +1,255 @@
+<html>
+<head>
+  <base href=%TEMPLATEDIR%>
+  <style>
+	body	  {margin: 0}
+	#FileList {position: absolute; width: 100%; height: 100%;}
+  </style>
+  <script language="JavaScript">
+	var L_Prompt_Text	= "Select an item to view its description.";
+	var L_Multiple_Text	= " items selected.";
+	var L_Size_Text		= "Size: ";
+	var L_FileSize_Text	= "Total File Size: ";
+	var L_Delimiter_Text	= ",";
+	var L_Bytes_Text	= "&nbsp;bytes";
+	var L_Attributes_Text	= "Attributes";
+	var L_Codes_Text	= "RHSaCE";
+	var L_ReadOnly_Text 	= "Read-only";
+	var L_Hidden_Text	= "Hidden";
+	var L_System_Text	= "System";
+	var L_Archive_Text	= "Archive";
+	var L_Compressed_Text	= "Compressed";
+	var L_Encrypted_Text	= "Encrypted";
+	var L_NoAttributes_Text = "(normal)";
+	var L_Print_Text	    = "&Print";
+	var L_Dimensions_Text   = "Dimensions";
+	var L_Title_Text        = "Title";
+	var FMTID_SummaryInfo   = "{f29f85e0-4ff9-1068-ab91-08002b27b3d9}";
+	var PID_Title           = "2";
+	var L_Today_Text        = "Today at";
+	var L_Yesterday_Text    = "Yesterday at";
+	var gToday;
+	var gYesterday;
+
+	function GetFileExtension(name) {
+		var ext = name.substring(name.lastIndexOf(".") + 1, name.length);
+		return ext.toLowerCase();		
+	}
+
+	function IsBrowsable(item) {
+		if (item.IsBrowsable || item.IsFolder)
+			return true;
+		var ext = GetFileExtension(item.Path);
+		var types = "gif,jpg,htm,txt,rtf"
+		return types.indexOf(ext) > -1;
+	}
+
+	function FormatNumber(n) {
+	  var t = "";
+	  var i, j = 0;
+	  for (i = n.length - 1; i >= 0; i--) {
+		t = n.charAt(i) + t;
+		if (i && ((++j % 3) == 0))
+		  t = L_Delimiter_Text + t;
+	  }
+	  return t;
+	}
+
+		function FormatDate(s) {
+			var d = new Date(s);
+			d = d.toLocaleString();
+			d = d.substring(0, d.indexOf(' '));
+			if (d == gToday || d == gYesterday) {
+				var sTime = s.substring(s.indexOf(' '), s.length);
+				if (d == gToday)
+					s = L_Today_Text + sTime;
+				else
+					s = L_Yesterday_Text + sTime;
+			}
+			return s;
+		}
+
+		function InitDates() {
+			// init relative dates
+			gToday = new Date();
+			gToday = gToday.toLocaleString();
+			gToday = gToday.substring(0, gToday.indexOf(' '));
+			gYesterday = new Date(Date.parse(gToday) - (1000 * 60 * 60 * 24));
+			gYesterday = gYesterday.toLocaleString();
+			gYesterday = gYesterday.substring(0, gYesterday.indexOf(' '));
+		}
+  </script>
+
+  <script language="JavaScript" for="FileList" event="SelectionChanged">
+	// this script updates the left info panel when you select icons
+	var folder = FileList.Folder;
+	var item;
+	var name;
+	var data;
+	var text;
+	var title;
+	var size = 0;
+	var i;
+
+	data = FileList.SelectedItems().Count;
+
+    top.frames(1).document.Preview.printable = false;
+	if (data == 0) {
+	  // nothing selected?
+	  top.frames(1).document.Preview.ShowFile( "", data );
+	  top.frames(0).document.all.Info.innerHTML = L_Prompt_Text;
+	  return;
+	}
+	else if (data > 1) {
+	  // more than one item selected?
+	  top.frames(1).document.Preview.ShowFile( "", data );
+	  text = data + L_Multiple_Text + "<br>";
+	  if (data <= 100) {
+		for (i = 0; i < data; i++)
+		  size += FileList.SelectedItems().Item(i).Size;
+		if (size)
+		  text += "<br>" + L_FileSize_Text + FormatNumber(size.toString()) + L_Bytes_Text + "<br>";
+		if (data <= 16)
+		  for (i = 0; i < data; i++)
+			text += "<br>" + FileList.SelectedItems().Item(i).Name;
+	  }
+	  top.frames(0).document.all.Info.innerHTML = text;
+	  return;
+	}
+
+	item = FileList.SelectedItems().Item(0);
+
+	// have preview control generate image
+    fileverbs = item.Verbs(); 
+    data = fileverbs.Count; 
+    for (i=0; i < data; i++ ) 
+    { 
+      if ( L_Print_Text == fileverbs.Item(i).Name )
+      {
+        top.frames(1).document.Preview.printable = true;
+        break;
+      }
+    } 
+
+	top.frames(1).document.Preview.ShowFile( item.Path, data );
+
+	// name
+	name = folder.GetDetailsOf(item, 0);
+	if (IsBrowsable(item))
+        	text = '<b><a target=_top href="' + item.Path + '">' + name + '</a></b>';
+	else
+		text = "<b>" + name + "</b>";
+
+	// type
+	data = folder.GetDetailsOf(item, 2);
+	if (data)
+	  text += "<br>" + data;
+
+	// date
+	data = folder.GetDetailsOf(item, 3);
+	if (data)
+	  text += "<br><br>" + folder.GetDetailsOf(null, 3) + ": " + FormatDate(data);
+
+	// title
+	// BUGBUG: If the title property doesn't exist this returns a VARIANT of type VT_EMPTY
+	// which causes a script error.  I'm guessing that VT_EMPTY isn't valid for javascript.
+    // Uncomment the following section once this is resolved:
+	//data = item.ExtendedProperty(FMTID_SummaryInfo+":"+PID_Title);
+	//if (data)
+	//  text += "<br>" + L_Title_Text + ": " + data;
+
+	// size?
+	size = FileList.SelectedItems().Item(0).Size;
+	if (!item.IsFolder)
+	  if (size < 1000)
+		text += "<br>" + L_Size_Text + size + L_Bytes_Text;
+	  else {
+		data = folder.GetDetailsOf(item, 1);
+		if (data)
+		  text += "<br>" + folder.GetDetailsOf(null, 1) + ": " + data;
+		else
+		  text += "<br>" + L_Size_Text + FormatNumber(size.toString()) + L_Bytes_Text;
+	  }
+
+	// Dimensions
+	text += "<span id=dimensions></span>";
+
+	// extra details?
+	for (i = 4; i < 10; i++) {
+	  title = folder.GetDetailsOf(null, i);
+	  if (!title)
+		break;
+	  data = folder.GetDetailsOf(item, i);
+	  if (title == L_Attributes_Text) {
+		var code;
+		var s = "";
+
+		text += "<br>" + title + ": ";
+		for (i = 0; i < 6; i++) {
+		  code = L_Codes_Text.charAt(i);
+		  if (data.indexOf(code) > -1) {
+			if (s)
+			  s += ", ";
+			if (i == 0)
+			  s += L_ReadOnly_Text;
+			else if (i == 1)
+			  s += L_Hidden_Text;
+			else if (i == 2)
+			  s += L_System_Text;
+			else if (i == 3)
+			  s += L_Archive_Text;
+			else if (i == 4)
+			  s += L_Compressed_Text;
+			else if (i == 5)
+			  s += L_Encrypted_Text;
+		  }
+		}
+		if (!s)
+		  s = L_NoAttributes_Text;
+		text += s;
+	  }
+	  else if (data)
+		text += "<br><br>" + title + ":<br>" + data;
+	}
+
+	// tip?
+	data = folder.GetDetailsOf(item, -1);
+	if (data && data != name) {
+	  var start;
+	  var end;
+	  var theLink;
+	  var a;
+
+	  // parse lines for Office files without breaking links below
+	  a = data.split("\n");
+	  data = a.join("<br>\n");
+
+	  // look for embedded links
+	  text += "<br><br>";
+	  start = data.indexOf("http://");
+	  if (start < 0)
+		start = data.indexOf("file://");
+	  if (start < 0)
+		text += data;
+	  else {
+		end = data.indexOf(" ", start);
+		if (end < 0)
+		  end = data.length;
+		if (start > 0)
+		  text += data.substring(0, start - 1);
+		theLink = data.substring(start, end);
+        text += '<a target=_top href="' + theLink + '">' + theLink + '</a>';
+		if (end < data.length)
+		  text += data.substring(end + 1, data.length);
+	  }
+	}
+
+	// replace Info with the new text
+	top.frames(0).document.all.Info.innerHTML = text;
+  </script>
+</head>
+<body onload=InitDates() scroll=no>
+  <object id="FileList" border=0 classid="clsid:1820FED0-473E-11D0-A96C-00C04FD705A2">
+  </object>
+</body>
+</html>

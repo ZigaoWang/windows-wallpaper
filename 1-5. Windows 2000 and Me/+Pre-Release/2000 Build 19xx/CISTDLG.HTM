@@ -1,0 +1,97 @@
+<html>
+<script language="jscript">
+<!--
+var ShellApp = new ActiveXObject("Shell.Application");
+function OnOk()
+{
+    var ButtonState = getRadioValue("Ci");
+
+    if ("BtnStartCi" == ButtonState) {
+        ShellApp.ServiceStart("cisvc", true);
+    }    
+    
+    if ("BtnStopCi" == ButtonState) {
+        ShellApp.ServiceStop("cisvc", true);
+    }
+
+    setTimeout("window.close(self);", 2*1000);
+}
+
+function OnAdvanced()
+{
+    ShellApp.ShellExecute("ciadmin.msc");
+}
+
+function getRadioValue(radioName) {
+  var collection;
+ 
+  collection = document.all[radioName];
+
+  for (i=0;i<collection.length;i++) {
+    if (collection[i].checked)
+       return(collection[i].value);
+  }
+}
+
+//-->
+</script>
+
+<head><title>Start Index Server</title></head>
+<body
+style="font-family: MS Shell Dlg; font-size: 8pt; background: threedface">
+
+<div id=DivIntroText style="position:absolute; left:12; top:12;
+width=350; height=30;">
+Content Indexing enables faster searching.  Windows will read all the files on your local hard disks and build an index of file contents on each disk.
+</div>
+
+<div id=DivIntroText2 style="position:absolute; left:12; top:45;
+width=350; height=10;">
+Do you want to use Content Indexing?
+</div>
+
+<INPUT id=BtnStartCi accesskey=y type=radio name=Ci checked value="BtnStartCi"
+style="position:absolute; left:35; top:75; width:15; height:15;">
+
+<div id=DivStartCiLabel
+style="position:absolute; left:55; top:74; width=250; height=10;">
+<label for="BtnStartCi">
+<span id=SpanStartCiLabel>
+<u>Y</u>es, run Content Indexing when my computer is idle.
+</span>
+</label>
+</div>
+
+<INPUT id=BtnStopCi accesskey=n type=radio name=Ci value="BtnStopCi"
+style="position:absolute; left:35; top:90; width:15; height:15;">
+
+<div id=DivStopCiLabel
+style="position:absolute; left:55; top:89; width=250; height=10;">
+<label for="BtnStopCi">
+<span id="SpanStopCiLabel">
+<u>N</u>o, I want to conserve disk space.
+</span>
+</label>
+</div>
+
+<button type=submit onclick="OnOk();"
+style="font-family: MS Shell Dlg; font-size: 8pt;
+position:absolute; left=385; top=12; width=75; height=25;">
+OK
+</button>
+
+<button type=reset onclick="window.close(self);"
+style="font-family: MS Shell Dlg; font-size: 8pt;
+position:absolute; left=385; top=42; width=75; height=25;">
+Cancel
+</button>
+
+<!--
+<button type=button accesskey=a onclick="OnAdvanced();"
+style="font-family: MS Shell Dlg; font-size: 8pt;
+position:absolute; left=385; top=72; width=75; height=25;">
+<u>A</u>dvanced...
+</button>
+-->
+</body>
+</html>

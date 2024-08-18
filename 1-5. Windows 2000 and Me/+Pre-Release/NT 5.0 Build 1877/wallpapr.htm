@@ -1,0 +1,58 @@
+<!-- This is an HTML Wallpaper for use with Microsoft Windows NT5. -->
+
+<html>
+<head>
+</head>
+<body scroll=no style="background: rgb(58, 110, 165); margin: 0" onLoad="Load()" onResize="Resize()">
+	<div id=X style="width: 100%; height: 100%"></div>
+	<div id=S2 style="position: absolute; visibility: hidden; left: 8%; top: 0; width: 34.25%; height: 0; border: solid rgb(76.5, 127.5, 178.5)"></div>
+	<div id=S1 style="position: absolute; visibility: hidden; left: 0; top: 0; width: 34.25%; height: 0; border: solid rgb(51, 102, 153)"></div>
+	<div id=S3 style="position: absolute; visibility: hidden; left: 0; top: 0; width: 17.125%; height: 0; border: solid rgb(102, 153, 204)"></div>
+	<div id=S4 style="position: absolute; visibility: hidden; left: 0; top: 0; width: 17.125%; height: 0; border: solid rgb(51, 102, 153)"></div>
+	<div id=S5 style="position: absolute; visibility: hidden; left: 0; top: 0; width: 34.25%; height: 0; border: solid rgb(76.5, 127.5, 178.5)"></div>
+	<img id=Logo style="position: absolute; visibility: hidden; top: 26px" src="DeskLogo.gif">
+</body>
+<script>
+
+function Load() {
+	var doBlends = false && (navigator.cpuClass != "Alpha" && screen.colorDepth > 8);
+	Resize();
+	if (screen.colorDepth > 8) {
+		S1.style.visibility = "visible";
+		S2.style.visibility = "visible";
+		S3.style.visibility = "visible";
+		S4.style.visibility = "visible";
+		S5.style.visibility = "visible";
+	}
+	if (doBlends) {
+		Logo.filters[0].Stop();
+		Logo.filters[0].Apply();
+	}
+	Logo.style.visibility = "visible";
+	if (doBlends)
+		Logo.filters[0].Play();
+}
+
+function Resize() {
+	i = document.body.clientWidth * .055;
+	S1.style.height = S1.style.pixelWidth;
+	S1.style.borderWidth = i;
+	S2.style.top = S3.style.pixelWidth;
+	S2.style.height = S2.style.pixelWidth;
+	S2.style.borderWidth = i;
+	S3.style.left = S2.style.pixelLeft + S2.style.pixelWidth;
+	S3.style.height = S3.style.pixelWidth;
+	S3.style.borderWidth = i / 2;
+	S4.style.left = document.body.clientWidth - S1.style.pixelWidth - S3.style.pixelWidth;
+	S4.style.top = document.body.clientHeight - S3.style.pixelWidth;
+	S4.style.height = S4.style.pixelWidth;
+	S4.style.borderWidth = i / 2;
+	S5.style.top = document.body.clientHeight - S5.style.pixelWidth * 1.25;
+	S5.style.left = document.body.clientWidth - S1.style.pixelWidth;
+	S5.style.height = S5.style.pixelWidth;
+	S5.style.borderWidth = i;
+	Logo.style.left = document.body.clientWidth - 26 - 115; // Logo.width
+}
+
+</script>
+</html>

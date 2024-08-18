@@ -1,0 +1,18 @@
+<HTML>
+<HEAD>
+  <style>
+	body	  {margin: 0}
+	#Preview  {width: 100%; height: 100%;}
+  </style>
+  <script for=Preview event=onpreviewready>
+    var L_Dimension_Text = "Dimensions: ";
+
+    // set the dimensions field in the first frame
+    top.frames(0).document.all("dimensions").innerHTML = "<BR>" + L_Dimension_Text + Preview.cxImage + "x" + Preview.cyImage;
+  </script>
+</HEAD>
+<BODY scroll=no>
+  <object id="Preview" border=0 classid="clsid:50F16B26-467E-11D1-8271-00C04FC3183B">
+  </object>
+</BODY>
+</HTML>

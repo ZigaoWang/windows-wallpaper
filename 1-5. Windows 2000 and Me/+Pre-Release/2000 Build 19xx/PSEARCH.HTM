@@ -1,0 +1,116 @@
+<html>
+<head>
+<base target="_self"></base>
+<title>Search for Printers</title>
+
+<style>
+
+body, table, div
+{
+	font:			8pt/8pt Tahoma;
+	background:		window;
+	color:			windowtext;
+}
+
+body
+{
+	margin:			1pt 10pt 1pt 10pt;
+	padding:		0;
+}
+
+div
+{
+	margin: 		0;
+	padding:		0;
+}
+
+button
+{
+	font:		8pt/10pt Tahoma;
+	color:		windowtext;
+}
+
+input.text
+{
+	font:		8pt/10pt Tahoma;
+	color:		windowtext;
+	position:	relative;
+	width:		100%;
+	margin-top:	3px;
+}       
+
+</style>
+
+<script defer>
+
+function CancelSelect()
+{
+	if (window.event.srcElement.tagName != "INPUT")
+	{
+		event.returnValue = false;
+		//this doesn't allow selection of text in the ui
+	}
+}
+
+function FindPrinter()
+{
+	ShellOC.FindPrinter(formPrinter.txtPrinterName.value, formPrinter.txtPrinterLoc.value, formPrinter.txtPrinterModel.value);
+}
+
+function FileSearch()
+{
+    SearchAsst = new ActiveXObject("SearchAssistantOC.SearchAssistantOC");
+    SearchAsst.FindFilesOrFolders();
+}
+
+function PeopleSearch()
+{
+    ShellApp = new ActiveXObject("Shell.Application");
+    ShellApp.ShellExecute("wab.exe", "/find", "%programfiles%\outlook express", "open", true);
+}
+
+function InternetSearch()
+{
+    SearchAsst = new ActiveXObject("SearchAssistantOC.SearchAssistantOC");
+    SearchAsst.FindOnWeb();
+
+}
+</script>
+
+</head>
+<body onselectstart="CancelSelect()" scroll=no>
+<object id=ShellOC height=0 width=0 classid="clsid:13709620-C279-11CE-A49E-444553540000"></object>
+<div>
+	<nobr>
+		<img src="prnticon.gif" width=16 height=16 align=absmiddle></img>
+		<ID id=ID3>
+		<b>Search for Printers</b>
+	</nobr>
+	<br>
+	<form id=formPrinter onsubmit="FindPrinter();return false;">
+        <id id=idPrinterName>Na<u>m</u>e:</id>
+		<br>
+        <input type=text name=PrinterName accesskey=m id=txtPrinterName class=text>
+		<br>
+        <id id=idPrinterLocation>L<u>o</u>cation:</id>
+		<br>
+        <input type=text name=PrinterLoc accesskey=o id=txtPrinterLoc class=text>
+		<br>
+        <id id=idPrinterModel>Mo<u>d</u>el:</id>
+		<br>
+        <input type=text name=PrinterModel accesskey=d id=txtPrinterModel class=text>
+		<br>
+        <input type=submit id=btnPrinterStartSearch value=Search title="Start Searching">
+	</form>
+    <table cellspacing=5 cellpadding=1>
+    <tr><td></td></tr>
+    <tr><td>Search for <a href="javascript:window.FileSearch()">Files or Folders</a></td></tr>
+    <tr><td>Search for <a href="csearch.htm">Computers</a></td></tr>
+    <tr><td>Search for Printers</td></tr>
+    <tr><td>Search for <a href="javascript:window.PeopleSearch()">People in your organization</a></td></tr>
+    <tr><td>Search <a href="javascript:window.InternetSearch()">the Internet</a></td></tr>
+    </table>
+</div>
+</body>
+
+</html>

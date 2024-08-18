@@ -1,0 +1,612 @@
+<html>
+<head>
+<title>Desktop Calculator</title>
+
+<style>
+	body		{margin: 0}
+	#Keys		{background: tan url("CalculatorTrim.gif"); width: 166px}
+	td		{width: 24px; height: 28px}
+	td.func 		{width: 28px}
+	td.spacer		{width: 0; background: none}
+	td.zero 		{width: 54px}
+	#Mem		{position: absolute; left: 10px; top: 8px; width: 8px; height: 8px; color: black; font-family: Tahoma; font-size: 6pt; font-weight: bold}
+	div.LCD 		{width: 166px; height: 38px; background: #333333; padding-top: 4px; padding-left: 5px}
+	input		{width: 100%; height: 100%; background: #333333; color: white; border-color: #999999; font-family: Tahoma; font-size: 10pt; font-weight: bold}
+	input.func		{width: 28px; font-size: 8pt}
+	input.LCD		{width: 155px; height: 27px; background: RGB(222, 231, 247); color: black; text-align: right; font-size: 13pt; font-weight: bold}
+</style>
+</head>
+
+<body onLoad="Initialize()" onKeyPress="ReadKey()" onKeyDown="ReadKeyDown()" onUnload="Persist()" scroll="no">
+
+<div class="LCD">
+	<input class="LCD" id="LCD" readonly>
+	<div id="Mem" onSelectStart="Ignore()">M</div>
+</div>
+
+<table id="Keys" onSelectStart="Ignore()" border="1" cellspacing="4" cellpadding="0" bordercolorlight="tan" bordercolordark="black">
+<!-- optional functions
+<tr>
+<td class="func"><input class="func" type="button" value="CE" onClick="ReadClearEntry()"> </td>
+<td class="func"><input class="func" type="button" value="sqrt" onClick="ReadSqrt()"> </td>
+</tr>
+-->
+<tr>
+	<td class="func"><input type="button" value="C" onClick="ReadClear(true)"> </td>
+	<td class="spacer" rowspan="5"></td>
+	<td><input type="button" value="%" onClick="ReadPercent()" onDblClick="ReadPercent()"> </td>
+	<td><input type="button" id="/" value="&divide;" onClick="ReadOp(this.id)" onDblClick="ReadOp(this.id)"> </td>
+	<td><input type="button" id="*" value="&times;" onClick="ReadOp(this.id)" onDblClick="ReadOp(this.id)"> </td>
+	<td><input type="button" id="-" value="&minus;" onClick="ReadOp(this.id)" onDblClick="ReadOp(this.id)"> </td>
+</tr>
+<tr>
+	<td class="func"><input class="func" type="button" value="MC" onClick="ReadMemClear()"> </td>
+	<td><input type="button" id="7" value="7" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="8" value="8" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="9" value="9" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td rowspan="2"><input type="button" id="+" value="+" onClick="ReadOp(this.id)" onDblClick="ReadOp(this.id)" style="height: 100%"> </td>
+</tr>
+<tr>
+	<td class="func"><input class="func" type="button" value="MR" onClick="ReadMemRecall()" onDblClick="ReadMemRecall()"> </td>
+	<td><input type="button" id="4" value="4" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="5" value="5" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="6" value="6" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+</tr>
+<tr>
+	<td class="func"><input class="func" type="button" value="MS" onClick="ReadMemStore()" onDblClick="ReadMemStore()"> </td>
+	<td><input type="button" id="1" value="1" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="2" value="2" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="3" value="3" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td rowspan="2"><input type="button" value="=" onClick="ReadEqual()" onDblClick="ReadEqual()" style="height: 100%">
+	</td>
+</tr>
+<tr>
+	<td class="func"><input class="func" type="button" value="M+" onClick="ReadMemAdd()" onDblClick="ReadMemAdd()"> </td>
+	<td class="zero" colspan="2"><input type="button" id="0" value="0" onClick="ReadDigit(this.id)" onDblClick="ReadDigit(this.id)"> </td>
+	<td><input type="button" id="." value="." onClick="ReadPoint()" onDblClick="ReadPoint()"> </td>
+</tr>
+</table>
+
+<script>
+
+	// Constants		Calculator states (theState values, see below)
+	var state0 =0;		// zero arguments available, initial state
+	var state1 =1;		// one argument (left) available
+	var state1a = -1;		// one argument (left) and opcode available
+	var state2=2;		// two arguments (left and right) and opcode available
+	var state2a = -2;		// result calculated (via '='), two arguments and opcode available
+	var state3=3;		// right argument modified (either square root or percentage taken)
+
+	var maxLen= 12;		// maximum display or input length (min = 9 chars, incl sign & dot)
+
+	// Global variables, persisted via cookies
+	var register = new Array (2);	// [0] left argument, [1] right argument
+	var memory = 0;		// Memory
+	var focus = 0;		// Register number that has input and display focus
+	var argReady = false;	// Argument available?
+	var decPoint = false;	// Decimal point entered?
+	var opCode = "";		// Operation code to perform ("+", "-", "*", "/")
+	var theState = state0;	// Calculator state (see constants for possible values and meaning)
+
+	// Global variables, not persisted
+	var timer = 0;		// Timeout ID used in processing hot keys for memory functions
+
+        // We need this for the backspace key, ReadKey doesn't get called for backspace...
+        function ReadKeyDown ()
+        {
+		var keyCode = window.event.keyCode;
+
+		switch (keyCode)
+                {
+                case 8: // VK_BACK
+                        ReadBack();
+                        break;
+                }
+		window.clearTimeout (timer);
+		timer = 0;
+        }
+
+	function ReadKey ()
+	{
+		var keyCode = window.event.keyCode;
+		var key = String.fromCharCode (keyCode);
+
+		switch (key)
+		{
+		case 'M':
+		case 'm':
+			// first key pressed, wait 1.5 seconds for the 2nd key press
+			// if no 2nd key press, then forget the 1st one after timeout
+			timer = window.setTimeout ("timer = 0", 1500);
+			return;
+
+		case 'C':
+		case 'c':
+			if (timer)
+				ReadMemClear ();
+			else
+				ReadClear (true);
+			break;
+
+		case 'R':
+		case 'r':
+			if (timer)
+				ReadMemRecall ();
+			break;
+
+		case 'S':
+		case 's':
+			if (timer)
+				ReadMemStore ();
+			break;
+
+		case '0':
+		case '1':
+		case '2':
+		case '3':
+		case '4':
+		case '5':
+		case '6':
+		case '7':
+		case '8':
+		case '9':
+			ReadDigit (key);
+			break;
+
+		case '.':
+		case ',':
+			ReadPoint ();
+			break;
+
+		case '+':
+			if (timer)
+				ReadMemAdd ();
+			else
+				ReadOp (key);
+			break;
+
+		case '-':
+			if (timer)
+				ReadMemSub ();
+			else
+				ReadOp (key);
+			break;
+
+		case '*':
+		case '/':
+			ReadOp (key);
+			break;
+
+		case '%':
+			ReadPercent ();
+			break;
+
+		case '@':
+			ReadSqrt ();
+			break;
+
+		case '=':
+			ReadEqual ();
+			break;
+
+		default:
+			if (keyCode == 13) // ENTER
+			{
+				ReadEqual ();
+				window.event.keyCode = 0; // so the focused button doesn't fire
+			}
+			else if (keyCode == 27) // ESC
+				ReadClear (true);
+				
+		}
+
+		window.clearTimeout (timer);
+		timer = 0;
+	}
+
+        function ReadBack ()
+        {
+                if (argReady)
+                {
+                        var length;
+
+        		if (register [focus] == "0")
+			        return;
+
+		        if (typeof (register [focus]) == "number")
+        		        register [focus] = register [focus].toString ().toUpperCase ();
+
+                        length = register [focus].length - 1;
+
+                        if (register [focus].substr (length, length) == ".")
+                                decPoint = false;
+
+                        if (length)
+                                register [focus] = register [focus].substr (0, length);                        
+		        else
+                                register [focus] = "0";
+
+		        display (focus);
+                }
+        }
+
+	function ReadDigit (digit)
+	{
+		if (!argReady)
+		{
+			transition ();
+			register [focus] = digit;
+			argReady = true;
+			decPoint = false;
+		}
+		else
+		{
+			if (register [focus].length == maxLen)
+				return;
+			if (register [focus] == "0")
+				register [focus] = digit;
+			else
+				register [focus] += digit;
+		}
+		display (focus);
+	}
+
+	function ReadPoint ()
+	{
+		if (!argReady)
+		{
+			transition ();
+			register [focus] = "0";
+			argReady = true;
+		}
+
+		if (!decPoint)
+		{
+			register [focus] += ".";
+			decPoint = true;
+		}
+
+		display (focus);
+	}
+
+	function ReadOp (op)
+	{
+		switch (theState)
+		{
+		case state2:
+		case state3:
+			evaluate ();
+
+		case state0:
+		case state1:
+		case state2a:
+			duplicate ();
+
+		case state1a:
+			theState = state1a;
+			opCode = op;
+			break;
+
+		default:
+			break;
+		}
+
+		ready ();
+	}
+
+	function ReadEqual ()
+	{
+		switch (theState)
+		{
+		case state1a:
+		case state2:
+		case state2a:
+		case state3:
+			theState = state2a;
+			evaluate ();
+			break;
+
+		default:
+			break;
+		}
+
+		ready ();
+	}
+
+	function ReadClear (bDisplay)
+		{
+	register [0] = 0;
+		register [1] = 0;
+		focus = 0;
+		opCode = "";
+		theState = state0;
+		if (bDisplay)
+			display (0);
+		ready ();
+	}
+
+	function ReadClearEntry ()
+	{
+		switch (theState)
+		{
+		case state3:
+		case state2:
+			theState = state1a;
+
+		case state1:
+			register [focus] = 0;
+			display (focus);
+			ready ();
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	function ReadSqrt ()
+	{
+		parse (focus);
+		register [focus] = Math.sqrt (register [focus]);
+		display (focus);
+		ready ();
+
+		switch (theState)
+		{
+		case state0:
+		case state1:
+		case state1a:
+		case state2a:
+			theState = state1;
+			break;
+
+		case state2:
+		case state3:
+			theState = state3;
+			break;
+
+		default:
+			break;
+		}
+	}
+
+	function ReadPercent ()
+	{
+		if (theState == state2)
+		{
+			parse (1);
+			register [1] *= (register [0] / 100);
+			display (1);
+			ready ();
+
+			theState = state3;
+		}
+	}
+
+	function MemIndicator ()
+	{
+		Mem.style.color = (memory ? "black" :"RGB(206, 214, 239)");
+	}
+
+	function ReadMemStore ()
+	{
+		parse (focus);
+		memory = register [focus];
+		MemIndicator ();
+		ready ();
+	}
+
+	function ReadMemAdd ()
+	{
+		parse (focus);
+		memory += register [focus];
+		MemIndicator ();
+		ready ();
+	}
+
+	function ReadMemSub ()
+	{
+		parse (focus);
+		memory -= register [focus];
+		MemIndicator ();
+		ready ();
+	}
+
+	function ReadMemRecall ()
+	{
+		transition ();
+		register [focus] = memory;
+		display (focus);
+		ready ();
+	}
+
+	function ReadMemClear ()
+	{
+		memory = 0;
+		MemIndicator ();
+		ready ();
+	}
+
+	function transition ()
+	{
+		if (theState == state1a)
+		{
+			theState = state2;
+			focus = 1;
+		}
+		else
+		{
+			theState = state1;
+			focus = 0;
+		}
+	}
+
+	function evaluate ()
+	{
+		parse (1);
+		eval ("register [0] " + opCode + "= register [1]");
+		display (0);
+	}
+
+	function duplicate ()
+	{
+		parse (0);
+		register [1] = register [0];
+		display (1);
+	}
+
+	function parse (regNum)
+	{
+		if (typeof (register [regNum]) == "string")
+			register [regNum] = parseFloat (register [regNum]);
+	}
+
+	function formatted (num)
+	{
+		// don't format input (formatting kills "0.", "0.00", etc.)
+		if (typeof (num) == "string")
+			return num;
+
+		output = num.toString ().toUpperCase ();
+
+		nLen = output.length;
+		if (nLen <= maxLen)
+			return output;
+
+		ePos = output.indexOf ('E');
+		dPos = output.indexOf ('.');
+
+		// for integers, fake a dot at the end
+		if (dPos == -1)
+		dPos = nLen;
+
+		// for simplicity, truncation will be used, not true rounding
+		if (dPos <= maxLen)
+		{
+			outE = (ePos > 0) ? output.substr (ePos) : "";
+			outM = output.substr (0, maxLen - outE.length);
+
+			// for better presentation, eliminate rounding errors, show exact powers of 10
+			if (10 == (Math.abs (parseFloat (outM)) + Math.pow (10, -(outM.length - dPos - 1))))
+			{
+				outM = (num > 0) ? '1' : '-1';
+				outE = output.substr (ePos, 2);// copy "E+" or "E-"
+				outE += Math.abs ((parseInt (output.substr (ePos + 1)) + 1)); // correct exponent
+			}
+		}
+		else
+		{
+			len = ('-' == output.charAt (0)) ? 2 : 1;
+			outE = "E+" + (dPos - len);
+			outM = output.substr (0, len) + '.';
+			outM += output.substr (len, maxLen - len - outE.length - 1);
+		}
+
+		// after truncation trim trailing zeros, dot
+		while ('0' == outM.charAt (outM.length - 1))
+		outM = outM.slice (0, -1);
+		if ('.' == outM.charAt (outM.length - 1))
+			outM = outM.slice (0, -1);
+
+		return (outM + outE);
+	}
+
+	function display (regNum)
+	{
+		LCD.value = formatted (register [regNum]);
+		focus = regNum;
+	}
+
+	function ready ()
+	{
+		argReady = false;
+		decPoint = false;
+	}
+
+	function setCookie (name)
+	{
+		value = eval (name);
+
+		switch (typeof (value))
+		{
+		case "string":
+			value = "\'" + value + "\'";
+			break;
+
+		case "number":
+			value = value.toString ();
+			break;
+
+		case "boolean":
+			break;
+
+		default:
+			value = "";
+			break;
+		}
+
+		x = new Date ();
+		x.setTime (1000 * 60 * 60 * 24 * 365 * 130); // expires on 11/30/2099 (arbitrary date)
+
+		document.cookie = escape (name) + "=" + value + ";path=/;expires=" + x.toUTCString ();
+	}
+
+	function getCookie (name)
+	{
+		dc = unescape (document.cookie);
+
+		if (dc.length == 0)
+			return;
+
+		cName = name + "=";
+		pos0 = dc.indexOf (cName);
+
+		if (pos0 == -1)
+			return;
+
+		pos0 += cName.length;
+		pos1 = dc.indexOf (";", pos0);
+		if (pos1 == -1)
+			pos1 = dc.length;
+
+		return eval (cName + dc.substring (pos0, pos1));
+	}
+
+	function Initialize ()
+	{
+		ReadClear (false);
+
+		getCookie ("register [0]");
+		getCookie ("register [1]");
+		getCookie ("memory");
+		getCookie ("focus");
+		getCookie ("argReady");
+		getCookie ("decPoint");
+		getCookie ("opCode");
+		getCookie ("theState");
+
+		MemIndicator ();
+		display (focus);
+	}
+
+	function Persist ()
+	{
+		setCookie ("register [0]");
+		setCookie ("register [1]");
+		setCookie ("memory");
+		setCookie ("focus");
+		setCookie ("argReady");
+		setCookie ("decPoint");
+		setCookie ("opCode");
+		setCookie ("theState");
+	}
+
+	function Ignore ()
+	{
+		window.event.returnValue = false;
+	}
+
+</script>
+
+</body>
+</html>

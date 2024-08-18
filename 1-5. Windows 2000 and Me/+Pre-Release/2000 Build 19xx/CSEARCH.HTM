@@ -1,0 +1,208 @@
+<html>
+<head>
+<base target="_self"></base>
+<title>Search for Computers</title>
+
+<style>
+body, table, div
+{
+	font:			8pt/8pt Tahoma;
+	background:		window;
+	color:			windowtext;
+}
+
+body
+{
+	margin:			1pt 10pt 1pt 10pt;
+	padding:		0;
+}
+
+div
+{
+	margin: 		0;
+	padding:		0;
+}
+
+button
+{
+	font:		8pt/10pt Tahoma;
+	color:		windowtext;
+}
+
+input.text
+{
+	font:		8pt/10pt Tahoma;
+	color:		windowtext;
+	position:	relative;
+	width:		100%;
+	margin-top:	3px;
+}       
+
+</style>
+
+<script defer>
+
+var L_PathNotFound_Text = "The Specified Path was not found.";
+
+var fExecuteInProgress;
+
+function InitThisPage()
+{
+    fExecuteInProgress = false;
+	Command.SearchFor(1);	// Say we are looking for computers
+}
+
+function CancelSelect()
+{
+	if (window.event.srcElement.tagName != "INPUT")
+	{
+		event.returnValue = false;
+		//this doesn't allow selection of text in the ui
+	}
+}
+
+function OnStartButtonClick()
+{
+	if (!fExecuteInProgress)
+	{
+		if (TextMain.value != "")
+		{
+    		Command.AddConstraint("SearchFor", TextMain.value);
+			Command.Execute();
+			StartButton.disabled = true;
+			StopButton.disabled = false;
+		}
+	}
+}
+
+function OnStopButtonClick()
+{
+	if (fExecuteInProgress)
+	{
+		StopButton.disabled = true;
+		Command.Execute();
+	}
+}
+
+
+function OnStartOver()
+{
+    if (!StartOver.disabled)
+    {
+    	// Do some of the specific ones...
+    	Command.ClearResults();
+    	TextMain.value = "";
+        TextMain.focus();
+	}
+}
+
+function OnSearchError()
+{
+	var ErrorNum;
+    var ErrorExtraText;
+	ErrorNum = Command.GetErrorInfo(ErrorExtraText);
+
+	if (ErrorNum == 1 /* SCEE_PATHNOTFOUND */)
+	{
+        alert(L_PathNotFound_Text);
+		StartButton.disabled = false;
+		StopButton.disabled = true;
+	}
+}
+
+function OnSearchStart()
+{
+	fExecuteInProgress = true;
+}
+
+function OnSearchComplete()
+{
+	StartButton.disabled = false;
+	StopButton.disabled = true;
+	fExecuteInProgress = false;
+	TextMain.focus();
+}
+
+function FileSearch()
+{
+    SearchAsst = new ActiveXObject("SearchAssistantOC.SearchAssistantOC");
+    SearchAsst.FindFilesOrFolders();
+}
+
+function PeopleSearch()
+{
+    ShellApp = new ActiveXObject("Shell.Application");
+    ShellApp.ShellExecute("wab.exe", "/find", "%programfiles%\outlook express", "open", true);
+}
+
+function InternetSearch()
+{
+    SearchAsst = new ActiveXObject("SearchAssistantOC.SearchAssistantOC");
+    SearchAsst.FindOnWeb();
+}
+</script>
+
+<script defer for="Command" event="SearchStart">
+	OnSearchStart();
+</script>
+
+<script defer for="Command" event="SearchAbort">
+	OnSearchComplete();
+</script>
+
+<script defer for="Command" event="SearchComplete">
+	OnSearchComplete();
+</script>
+
+<script defer for="Command" event="ProgressTextChanged">
+    defaultStatus = Command.ProgressText;
+</script>
+
+<script defer for="Command" event="SearchError">
+	OnSearchError();
+</script>
+
+
+</head>
+
+<span style="text-align:right"><body onload="InitThisPage()" onselectstart="CancelSelect()" scroll=no></span>
+<object id=Command border=0 tabindex=1 classid="clsid:B005E690-678D-11d1-B758-00A0C90564FE"></object>
+<div>
+	<nobr>
+		<img src="compicon.gif" width=16 height=16 align=absmiddle></img>
+		<ID id=ID3>
+		<b>Search for Computers</b>
+	</nobr>
+	<br>
+	<br>
+	<nobr>
+		<ID id=ID4>
+		Search f<u>o</u>r:
+	</nobr>
+	<br>
+	<input id=TextMain accesskey=o type=text class=text></input>
+	<br>
+	<table cellspacing=0 cellpadding=1>
+		<tr>
+			<td align=right>
+				<nobr>
+					<button id=StartButton accesskey=s type=submit onclick=OnStartButtonClick() style="width:55pt"><u>S</u>earch Now</button>
+					<span style="font:1pt">&nbsp</span>
+					<button id=StopButton accesskey=p type=button onclick=OnStopButtonClick() style="width:55pt" disabled=true>Sto<u>p</u> Search</button>
+				</nobr>
+			</td>
+		</tr>
+    </table>
+    <table cellspacing=5 cellpadding=1>
+    <tr><td></td></tr>
+    <tr><td></td></tr>
+    <tr><td>Search for <a href="javascript:window.FileSearch()">Files or Folders</a></td></tr>
+    <tr><td>Search for Computers</td></tr>
+    <tr><td>Search for <a href="psearch.htm">Printers</a></td></tr>
+    <tr><td>Search for <a href="javascript:window.PeopleSearch()">People in your organization</a></td></tr>
+    <tr><td>Search <a href="javascript:window.InternetSearch()">the Internet</a></td></tr>
+    </table>
+</div>
+</body>
+
+</html>
