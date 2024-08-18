@@ -1,0 +1,55 @@
+<HTML>
+<HEAD>
+
+</HEAD>
+
+<BODY>
+
+<OBJECT ID="DAControl" 
+  STYLE="position:absolute; width:800;height:600"
+  CLASSID="CLSID:B6FFC24C-7E13-11D0-9B47-00C04FC2F51D">
+</OBJECT>
+
+<SCRIPT LANGUAGE="JScript">
+<!--
+    m = DAControl.MeterLibrary;
+
+	MsgTxtImg = m.ImportImage("GO_Load.gif");
+
+    // Import the images (five of them in this case).
+    picImg1 = m.ImportImageAsync("Go_scn01.JPG",MsgTxtImg);
+    picImg2 = m.ImportImageAsync("Go_scn02.JPG",picImg1.Image);
+    picImg3 = m.ImportImageAsync("Go_scn03.JPG",picImg2.Image);
+    picImg4 = m.ImportImageAsync("Go_scn04.JPG",picImg3.Image);
+    picImg5 = m.ImportImageAsync("Go_scn05.JPG",picImg4.Image);
+    picImg6 = m.ImportImageAsync("Go_scn06.JPG",picImg5.Image);
+    picImg7 = m.ImportImageAsync("Go_scn07.JPG",picImg6.Image);
+    picImg8 = m.ImportImageAsync("Go_scn08.JPG",picImg7.Image);
+    picImg9 = m.ImportImageAsync("Go_scn09.JPG",picImg8.Image);
+    picImg10 = m.ImportImageAsync("Go_scn10.JPG",picImg9.Image);
+
+	switchEv = m.Timer(3);
+
+    finalImg = new ActiveXObject("DirectAnimation.DAImage");
+      finalImg.Init(m.Until(picImg1.Image, switchEv, 
+      	m.Until(picImg2.Image, switchEv, 
+		m.Until(picImg3.Image, switchEv,
+		m.Until(picImg4.Image, switchEv,
+		m.Until(picImg5.Image, switchEv,
+     	m.Until(picImg6.Image, switchEv, 
+		m.Until(picImg7.Image, switchEv,
+		m.Until(picImg8.Image, switchEv,
+		m.Until(picImg9.Image, switchEv,
+		m.Until(picImg10.Image, switchEv,
+
+		finalImg)))))))))));
+
+   
+    DAControl.Image = finalImg;
+    DAControl.Sound = m.Silence;
+
+    DAControl.Start();
+-->
+</SCRIPT>
+</BODY>
+</HTML>

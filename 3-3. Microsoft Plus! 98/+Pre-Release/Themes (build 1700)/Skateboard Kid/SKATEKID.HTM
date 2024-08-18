@@ -1,0 +1,247 @@
+<HTML>
+<HEAD>
+<META NAME="GENERATOR" Content="Microsoft Developer Studio">
+<META HTTP-EQUIV="Content-Type" content="text/html; charset=iso-8859-1">
+<TITLE>Document Title</TITLE>
+</HEAD>
+<BODY>
+
+<OBJECT ID="DAControl"
+  STYLE="position:absolute; left:0; top:0;width:800;height:600;" 
+  CLASSID="CLSID:B6FFC24C-7E13-11D0-9B47-00C04FC2F51D">
+</OBJECT>
+        
+<SCRIPT LANGUAGE="JScript">
+<!--
+  // The DirectAnimation library
+  m = DAControl.PixelLibrary;
+  pi = Math.PI;
+  pixel = m.DANumber(3300);
+  zero = m.DANumber(0);
+  
+  //Background 
+  backImg = m.ImportImage("Sk_bg.gif");
+  //BOATS
+  boatImg = Boat();
+
+  // Kid Image Templates
+  kidL  = m.ImportImage("Sk_kidL.gif"); 
+  kidR  = m.ImportImage("Sk_kidR.gif"); 
+  kidX  = m.ImportImage("Sk_kidX.gif");
+   
+  //Static 2DKid Images
+  kidImg1 = kidR.Transform(m.Translate2(-685,-820)).Transform(m.Scale2Uniform(.30));
+  kidImg2 = kidR.Transform(m.Translate2(-270,-820)).Transform(m.Scale2Uniform(.30));
+  kidImg3 = kidL.Transform(m.Translate2(600,-330)).Transform(m.Scale2Uniform(.45));
+  kidImg4 = kidR.Transform(m.Translate2(-100,130)).Transform(m.Scale2Uniform(.75));
+  kidImg5 = kidX.Transform(m.Translate2(280,200));
+  kidImg6 = kidL.Transform(m.Translate2(400,-375)).Transform(m.Scale2Uniform(.35)).Transform(m.Rotate2(.2));
+  kidImg7 = kidR.Transform(m.Translate2(-20,-400)).Transform(m.Scale2Uniform(.35)).Transform(m.Rotate2(.2));
+  kidImg8 = kidL.Transform(m.Translate2(0,-200)).Transform(m.Scale2Uniform(.35)).Transform(m.Rotate2(.2));
+
+  //Rotating 3D Kid Template
+  RotatingKidImg = GetRotatingKidTemplate();
+  //Rotating 3D Kid Instances
+  RotatingKidImg1 = RotatingKidImg.Transform(m.Translate3(-420,-490,0)).Transform(m.Scale3Uniform(.5));
+  RotatingKidImg2 = RotatingKidImg.Transform(m.Translate3(-120,-490,0)).Transform(m.Scale3Uniform(.5));
+  RotatingKidImg3 = RotatingKidImg.Transform(m.Translate3(270,-160,0)).Transform(m.Scale3Uniform(.85));
+  RotatingKidImg4 = RotatingKidImg.Transform(m.Translate3(-60,60,0)).Transform(m.Scale3Uniform(1.25));
+  RotatingKidImg5 = RotatingKidImg.Transform(m.Translate3(0,-200,0)).Transform(m.Scale3Uniform(.75));
+
+
+
+  animScene =  m.Overlay(boatImg, backImg);
+  
+  animKid = RandomKidSeries();
+ 
+  DAControl.Image =  m.Overlay(animKid,animScene);
+  DAControl.Sound = m.Silence;
+  
+  // start the animation       
+  DAControl.Start();
+
+///////////////////////////////////////////////////////////////////////////////////
+//	This function returns an animated boat that appears to go off-screen 
+//	but actually is dynamically cropped at the screen one pixel before the border 
+function Boat() 
+{
+  boatImg = m.ImportImage("Sk_boats.GIF");
+  boatImg = boatImg.Transform(m.Translate2(-468,-172)).Transform(m.Scale2Uniform(.7)); 
+  
+  // This is used to translate the matte along the x-axis
+  dx = m.Mul(m.DANumber(180), m.Sin(m.Div(m.LocalTime,m.DANumber(5))));
+  xfTrans = m.Translate2Anim(dx, zero);
+  
+  // Shear the matte
+  xfShear = m.XShear2Anim(m.Sin(m.DANumber(.005)));
+  boatImgAnim = boatImg.Transform(xfTrans).Transform(xfShear);
+
+  fixedBox = boatImg.BoundingBox;
+  animBox = boatImgAnim.BoundingBox;
+  return boatImgAnim.crop(fixedBox.Min, animBox.Max);
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+//Returns a rotating kid template that can be used to construct the various instances
+function GetRotatingKidTemplate()
+{
+  RotatingKidImg = ImgToGeo(kidR);
+  pos = m.Point3SphericalAnim(zero, zero, zero);
+  rot = m.Compose3(m.Translate3Point(pos), m.Rotate3Rate(m.YVector3, pi*4));
+  return RotatingKidImg.Transform(rot);
+
+}
+
+
+
+///////////////////////////////////////////////////////////////////////////////////
+// Weighted Event Randomizing functions
+function RndKid() 
+{
+	r = Math.random() * 12;
+	if(r<1)
+	{
+	  img = SpinKid();
+	}
+    else if( r<5 && r>=2)
+	{
+	  img = m.EmptyImage;
+	}
+	else 
+	{
+	  img = StaticKid();
+	}
+	return img;
+}
+
+///////////////////////////////////////////////////////////////////////
+function StaticKid()
+{
+	r = Math.random() * 16;
+
+ 	if(r<2)
+	{
+	  img = kidImg1;
+	}
+	else if(r<4 && r>=2)
+	{
+	  img = kidImg2;
+	}
+	else if(r<6 && r>=4)
+	{
+	  img = kidImg3;
+	}
+	else if(r<8 && r>=6)
+	{
+	  img = kidImg4;
+	}
+	else if(r<10 && r>=8)
+	{
+	  img = kidImg5;
+	}
+	else if(r<12 && r>=10)
+	{
+	  img = kidImg6;
+	}
+	else if(r<14 && r>=12)
+	{
+	  img = kidImg7;
+	}
+	else
+	{
+	  img = kidImg8;
+	}
+	return img;
+}
+
+function SpinKid()
+{
+      r =  Math.random() * 10;
+
+	  if(r<2)
+	  {
+		kidImg = RotatingKidImg1;
+	  }
+	  else if(r<4 && r>=2 )
+	  {
+		kidImg = RotatingKidImg2;
+	  }
+	  else if(r<6 && r>=4 )
+	  {
+		kidImg = RotatingKidImg3;
+	  }
+	  else if(r<8 && r>=6)
+	  {
+		kidImg = RotatingKidImg4;
+	  }
+	  else
+	  {
+		kidImg = RotatingKidImg5;
+	  }
+
+  // render kid with a camera and ambient light
+  camera = m.PerspectiveCamera(400, 370);
+   return m.UnionGeometry(kidImg, m.AmbientLight).render(camera); 
+}
+
+///////////////////////////////////////////////////////////////////////////////////
+// returns a 3D version of image of equal dimensions
+function ImgToGeo(img) 
+{
+    squareGeo = m.ImportGeometry("square.x");
+    imgBbox = img.BoundingBox;
+    return(squareGeo
+             .Transform(m.Scale3Anim(m.Div(imgBbox.Max.X,m.DAnumber(2)), m.Div(imgBbox.Max.Y,m.DANumber(2)), m.DANumber(1)))
+             .Texture(img.MapToUnitSquare()));
+}
+
+function RandomKidSeries()
+{
+  finalImg = new ActiveXObject("DirectAnimation.DAImage");
+  testNum = m.add(m.mul(m.SeededRandom(10), m.DANumber(3)), m.DANumber(2));
+  finalImg.Init(
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+		m.Until(RndKid(), m.TimerAnim(testNum),
+
+		finalImg))))))))))))))))))))))))))))))))))));
+
+		return finalImg;
+			
+}
+//-->
+</SCRIPT>
+</BODY>
+</HTML>

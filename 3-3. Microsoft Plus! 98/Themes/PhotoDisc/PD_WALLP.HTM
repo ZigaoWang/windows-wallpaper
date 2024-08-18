@@ -1,0 +1,34 @@
+<HTML>
+<HEAD>
+<TITLE>Photodisc Desktop Wallpaper</TITLE>
+
+<SCRIPT Language="JavaScript">
+function init() {
+	PPicon.style.top = (document.body.offsetHeight - 105);
+	PPicon.style.left = (document.body.offsetWidth - 180);
+	PPicon.style.visibility="visible";
+}
+</SCRIPT>
+
+<SCRIPT Language="JavaScript" FOR="PPicon" event="onmouseover">
+	PPicon.filters(0).opacity=100;
+</SCRIPT>
+
+<SCRIPT Language="JavaScript" FOR="PPicon" event="onmouseout">
+	PPicon.filters(0).opacity=20;
+</SCRIPT>
+
+</HEAD>
+<BODY BGCOLOR="#000000" topmargin="0" leftmargin="0" rightmargin="0" bottommargin="0" onload="init();" onresize="init();">
+<IMG ID="wallpaper" SRC="wallpapr.jpg" STYLE="position:absolute; width:100%; height:100%; top:0; left:0">
+
+
+<A HREF="http://www.powerpics.com">
+
+<IMG ID="PPicon" BORDER="0" SRC="pplogo.gif" STYLE="position:absolute; width:150; height:92; top:84%; left:84%; filter:alpha(opacity=20); visibility:hidden">
+</A>
+
+
+
+</BODY>
+</HTML>

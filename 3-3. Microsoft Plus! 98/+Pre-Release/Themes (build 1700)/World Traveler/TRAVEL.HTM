@@ -1,0 +1,66 @@
+<HTML>
+<HEAD>
+
+</HEAD>
+
+<BODY>
+
+<OBJECT ID="DAControl" 
+  STYLE="position:absolute; width:800;height:600"
+  CLASSID="CLSID:B6FFC24C-7E13-11D0-9B47-00C04FC2F51D">
+</OBJECT>
+
+<SCRIPT LANGUAGE="JScript">
+<!--
+    m = DAControl.MeterLibrary;
+	// construct a text font
+	MsgTxtImg = m.ImportImage("WO_Load.gif");
+
+    // Import the images 
+    picImg1 = m.ImportImageAsync("Wo_scn01.JPG",MsgTxtImg);
+    picImg2 = m.ImportImageAsync("Wo_scn02.JPG",picImg1.Image);
+    picImg3 = m.ImportImageAsync("Wo_scn03.JPG",picImg2.Image);
+    picImg4 = m.ImportImageAsync("Wo_scn04.JPG",picImg3.Image);
+    picImg5 = m.ImportImageAsync("Wo_scn05.JPG",picImg4.Image);
+    picImg6 = m.ImportImageAsync("Wo_scn06.JPG",picImg5.Image);
+    picImg7 = m.ImportImageAsync("Wo_scn07.JPG",picImg6.Image);
+    picImg8 = m.ImportImageAsync("Wo_scn08.JPG",picImg7.Image);
+    picImg9 = m.ImportImageAsync("Wo_scn09.JPG",picImg8.Image);
+    picImg10 = m.ImportImageAsync("Wo_scn10.JPG",picImg9.Image);
+    picImg11 = m.ImportImageAsync("Wo_scn11.JPG",picImg10.Image);
+    picImg12 = m.ImportImageAsync("Wo_scn12.JPG",picImg11.Image);
+    picImg13 = m.ImportImageAsync("Wo_scn13.JPG",picImg12.Image);
+    picImg14 = m.ImportImageAsync("Wo_scn14.JPG",picImg13.Image);
+    //picImg15 = m.ImportImageAsync("Wo_scn15.JPG",picImg14.Image);
+
+	switchEv = m.Timer(10);
+    TravelImg = new ActiveXObject("DirectAnimation.DAImage");
+	
+	TravelImg.Init(m.Until(picImg1.Image, switchEv, 
+      	m.Until(picImg2.Image, switchEv, 
+		m.Until(picImg3.Image, switchEv,
+		m.Until(picImg4.Image, switchEv,
+		m.Until(picImg5.Image, switchEv,
+     	m.Until(picImg6.Image, switchEv, 
+		m.Until(picImg7.Image, switchEv,
+		m.Until(picImg8.Image, switchEv,
+		m.Until(picImg9.Image, switchEv,
+        m.Until(picImg10.Image, switchEv, 
+		m.Until(picImg11.Image, switchEv,
+        m.Until(picImg12.Image, switchEv, 
+		m.Until(picImg13.Image, switchEv,
+		m.Until(picImg14.Image, switchEv,
+		//m.Until(picImg15.Image, switchEv,
+		TravelImg)))))))))))))));
+	
+//	bIsReady = true;
+//	bIsReady = TravelImg.IsReady(bIsReady);
+//	finalImg = m.Cond(m.DABoolean(bIsReady), TravelImg, MsgTxtImg);
+   
+    DAControl.Image = TravelImg;
+    DAControl.Sound = m.Silence;
+    DAControl.Start();
+-->
+</SCRIPT>
+</BODY>
+</HTML>
